@@ -58,14 +58,71 @@ public final class ThreadTest extends TestCase {
         assertTrue("Unstarted threads were never finalized!", finalizedThreadsCount.get() > 0);
     }
 
-    private Thread newThread(final AtomicInteger finalizedThreadsCount, final int size) {
-        return new Thread() {
-            byte[] memoryPressure = new byte[size];
-            @Override protected void finalize() throws Throwable {
-                super.finalize();
-                finalizedThreadsCount.incrementAndGet();
-            }
-        };
+    public void testThreadSleep() throws Exception {
+        int millis = 1000;
+        long start = System.currentTimeMillis();
+
+        Thread.sleep(millis);
+
+        long elapsed = System.currentTimeMillis() - start;
+        long offBy = Math.abs(elapsed - millis);
+
+        assertTrue("Actual sleep off by " + offBy + " ms", offBy <= 250);
+    }
+
+    public void testThreadInterrupted() throws Exception {
+        Thread.currentThread().interrupt();
+        try {
+            Thread.sleep(0);
+            fail();
+        } catch (InterruptedException e) {
+            assertFalse(Thread.currentThread().isInterrupted());
+        }
+    }
+
+    public void testThreadSleepIllegalArguments() throws Exception {
+
+        try {
+            Thread.sleep(-1);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+
+        try {
+            Thread.sleep(0, -1);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+
+        try {
+            Thread.sleep(0, 1000000);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testThreadWakeup() throws Exception {
+        WakeupTestThread t1 = new WakeupTestThread();
+        WakeupTestThread t2 = new WakeupTestThread();
+
+        t1.start();
+        t2.start();
+        assertTrue("Threads already finished", !t1.done && !t2.done);
+
+        t1.interrupt();
+        t2.interrupt();
+
+        Thread.sleep(1000);
+        assertTrue("Threads did not finish", t1.done && t2.done);
+    }
+
+    public void testContextClassLoaderIsNotNull() {
+        assertNotNull(Thread.currentThread().getContextClassLoader());
+    }
+
+    public void testContextClassLoaderIsInherited() {
+        Thread other = new Thread();
+        assertSame(Thread.currentThread().getContextClassLoader(), other.getContextClassLoader());
     }
 
     /**
