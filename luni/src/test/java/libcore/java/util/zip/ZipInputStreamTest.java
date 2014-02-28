@@ -25,10 +25,11 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-import junit.framework.TestCase;
+import libcore.java.util.AbstractResourceLeakageDetectorTestCase;
+import tests.support.resource.Support_Resources;
 
-public final class ZipInputStreamTest extends TestCase {
+public final class ZipInputStreamTest extends AbstractResourceLeakageDetectorTestCase {
+
     public void testShortMessage() throws IOException {
         byte[] data = "Hello World".getBytes("UTF-8");
         byte[] zipped = ZipOutputStreamTest.zip("short", data);
